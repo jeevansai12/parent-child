@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Parent-Child Communication Quality Analyzer — Understand and improve your family communication." />
+  <title>{% block title %}CommQuality Analyzer{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary:   #6c63ff;
+      --primary-d: #574fd6;
+      --accent:    #ff6584;
+      --success:   #22c55e;
+      --warning:   #f59e0b;
+      --danger:    #ef4444;
+      --dark-bg:   #0f0f1a;
+      --card-bg:   #1a1a2e;
+      --card-border: rgba(108,99,255,.25);
+      --text-muted-custom: #8892a4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark-bg);
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    /* ── Navbar ────────────────────────────────── */
+    .navbar-custom {
+      background: rgba(26,26,46,.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: .75rem 1.5rem;
+    }
+    .navbar-brand-custom {
+      font-weight: 800;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg,var(--primary),var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-link-custom {
+      color: #cbd5e1 !important;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-link-custom:hover { color: var(--primary) !important; }
+    .nav-link-custom.active { color: var(--primary) !important; }
+
+    /* ── Cards ─────────────────────────────────── */
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,.35);
+      transition: transform .25s, box-shadow .25s;
+    }
+    .glass-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(108,99,255,.2); }
+
+    /* ── Buttons ───────────────────────────────── */
+    .btn-primary-custom {
+      background: linear-gradient(135deg,var(--primary),var(--primary-d));
+      border: none;
+      border-radius: .75rem;
+      color: #fff;
+      font-weight: 600;
+      padding: .65rem 1.75rem;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(108,99,255,.45);
+      color: #fff;
+    }
+    .btn-outline-custom {
+      border: 2px solid var(--primary);
+      border-radius: .75rem;
+      color: var(--primary);
+      font-weight: 600;
+      padding: .6rem 1.5rem;
+      transition: all .2s;
+      background: transparent;
+    }
+    .btn-outline-custom:hover { background: var(--primary); color: #fff; }
+
+    /* ── Badges ────────────────────────────────── */
+    .badge-strong   { background: linear-gradient(135deg,#22c55e,#16a34a); color:#fff; }
+    .badge-moderate { background: linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+    .badge-weak     { background: linear-gradient(135deg,#ef4444,#b91c1c); color:#fff; }
+
+    /* ── Form controls ─────────────────────────── */
+    .form-control-custom {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(108,99,255,.3);
+      border-radius: .75rem;
+      color: #e2e8f0;
+      padding: .65rem 1rem;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control-custom:focus {
+      background: rgba(255,255,255,.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 .2rem rgba(108,99,255,.25);
+      color: #e2e8f0;
+      outline: none;
+    }
+    .form-control-custom::placeholder { color: var(--text-muted-custom); }
+    .form-select-custom {
+      background-color: rgba(255,255,255,.05);
+      border: 1px solid rgba(108,99,255,.3);
+      border-radius: .75rem;
+      color: #e2e8f0;
+      padding: .65rem 1rem;
+    }
+    .form-select-custom:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 .2rem rgba(108,99,255,.25);
+      background-color: rgba(255,255,255,.08);
+      color: #e2e8f0;
+    }
+    .form-select-custom option { background: var(--card-bg); }
+
+    /* ── Section headings ──────────────────────── */
+    .section-title {
+      font-weight: 800;
+      background: linear-gradient(135deg,var(--primary),var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Alert styling ─────────────────────────── */
+    .alert { border-radius: .9rem; border: none; }
+
+    /* ── Footer ────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted-custom);
+      font-size: .85rem;
+      border-top: 1px solid var(--card-border);
+      margin-top: 3rem;
+    }
+
+    /* ── Animations ────────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp .5s ease both; }
+
+    /* ── Scrollbar ─────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand-custom" href="/">
+        <i class="bi bi-chat-heart-fill me-2"></i>CommQuality
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <i class="bi bi-list text-light fs-4"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link-custom {% if request.resolver_match.url_name == 'questionnaire' %}active{% endif %}"
+                 href="{% url 'questionnaire' %}">
+                <i class="bi bi-clipboard-check me-1"></i>Questionnaire
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link-custom {% if request.resolver_match.url_name == 'history' %}active{% endif %}"
+                 href="{% url 'history' %}">
+                <i class="bi bi-clock-history me-1"></i>History
+              </a>
+            </li>
+            <li class="nav-item ms-lg-2">
+              <span class="badge bg-primary rounded-pill px-3 py-2 me-2">
+                <i class="bi bi-person-fill me-1"></i>{{ user.username }}
+                <span class="opacity-75 ms-1">({{ user.role }})</span>
+              </span>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-outline-custom" href="{% url 'logout' %}">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+              </a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link-custom" href="{% url 'login' %}">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-primary-custom ms-lg-2" href="{% url 'register' %}">
+                <i class="bi bi-person-plus me-1"></i>Register
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash messages -->
+  {% if messages %}
+  <div class="container mt-3">
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show fade-in-up" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Main content -->
+  <main class="container py-4 fade-in-up">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    &copy; 2024 CommQuality Analyzer &mdash; Built with ❤️ using Django &amp; Machine Learning
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

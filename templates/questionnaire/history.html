@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}History — CommQuality Analyzer{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  .history-row {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: .85rem;
+    padding: 1.1rem 1.5rem;
+    margin-bottom: .85rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color .2s, transform .2s;
+    flex-wrap: wrap;
+  }
+  .history-row:hover { border-color: var(--primary); transform: translateX(4px); }
+
+  .history-index {
+    width: 2.2rem; height: 2.2rem; flex-shrink: 0;
+    background: rgba(108,99,255,.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: var(--primary); font-size: .85rem;
+  }
+  .history-date { color: #8892a4; font-size: .82rem; white-space: nowrap; }
+  .history-score { font-weight: 800; font-size: 1.2rem; }
+  .cat-pill {
+    border-radius: 2rem; padding: .25rem .9rem;
+    font-weight: 700; font-size: .82rem;
+  }
+  .empty-state {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card-bg); border: 1px dashed var(--card-border);
+    border-radius: 1.25rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+      <h1 class="section-title fs-1 mb-2">Your History</h1>
+      <p class="text-muted">Track your communication quality progress over time</p>
+    </div>
+
+    {% if results %}
+    <!-- Progress chart -->
+    <div class="glass-card p-4 mb-4">
+      <h2 class="fs-6 fw-bold mb-3 text-uppercase text-muted" style="letter-spacing:.08em;">
+        <i class="bi bi-graph-up me-2" style="color:var(--primary)"></i>Score Trend
+      </h2>
+      <canvas id="trendChart" height="100"></canvas>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="glass-card p-3 text-center">
+          <div class="fs-3 fw-bold" style="color:var(--primary);">{{ results|length }}</div>
+          <div class="text-muted small">Submissions</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="glass-card p-3 text-center">
+          <div class="fs-3 fw-bold" style="color:var(--success);">
+            {% with latest=results.0 %}{{ latest.score }}{% endwith %}
+          </div>
+          <div class="text-muted small">Latest Score</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="glass-card p-3 text-center">
+          <div class="fs-3 fw-bold"
+               style="color:{% if results.0.category == 'Strong' %}var(--success){% elif results.0.category == 'Moderate' %}var(--warning){% else %}var(--danger){% endif %};">
+            {{ results.0.category }}
+          </div>
+          <div class="text-muted small">Latest Category</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History list -->
+    <h2 class="fs-6 fw-bold mb-3 text-uppercase text-muted" style="letter-spacing:.08em;">
+      <i class="bi bi-list-ul me-2"></i>All Submissions
+    </h2>
+    {% for result in results %}
+    <div class="history-row fade-in-up" style="animation-delay:{{ forloop.counter0 }}0ms">
+      <div class="history-index">{{ forloop.counter }}</div>
+
+      <div class="flex-grow-1">
+        <div class="history-date">
+          <i class="bi bi-calendar3 me-1"></i>{{ result.predicted_at|date:"M j, Y  H:i" }}
+        </div>
+      </div>
+
+      <div class="history-score"
+           style="color:{% if result.category == 'Strong' %}var(--success){% elif result.category == 'Moderate' %}var(--warning){% else %}var(--danger){% endif %};">
+        {{ result.score }}<span class="text-muted fw-normal" style="font-size:.75rem;">/3.0</span>
+      </div>
+
+      <span class="cat-pill
+        {% if result.category == 'Strong' %}badge-strong
+        {% elif result.category == 'Moderate' %}badge-moderate
+        {% else %}badge-weak{% endif %}">
+        {{ result.category }}
+      </span>
+
+      <a href="{% url 'results' result.id %}" class="btn btn-sm btn-outline-custom ms-auto">
+        <i class="bi bi-eye me-1"></i>View
+      </a>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="empty-state">
+      <div style="font-size:4rem;">📋</div>
+      <h2 class="fs-4 fw-bold mt-3 mb-2">No Submissions Yet</h2>
+      <p class="text-muted mb-4">Complete the questionnaire to start tracking your progress.</p>
+      <a href="{% url 'questionnaire' %}" class="btn btn-primary-custom px-4 py-2">
+        <i class="bi bi-clipboard-check me-2"></i>Take Questionnaire
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if results %}
+<script>
+  // Build datasets from Django context (reversed so oldest first on x-axis)
+  const labels = [
+    {% for r in results reversed %}
+      "{{ r.predicted_at|date:'M j' }}",
+    {% endfor %}
+  ];
+  const scores = [
+    {% for r in results reversed %}
+      {{ r.score }},
+    {% endfor %}
+  ];
+
+  const ctx = document.getElementById('trendChart').getContext('2d');
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, 150);
+  grad.addColorStop(0, 'rgba(108,99,255,.45)');
+  grad.addColorStop(1, 'rgba(108,99,255,0)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Score',
+        data: scores,
+        borderColor: '#6c63ff',
+        backgroundColor: grad,
+        borderWidth: 2.5,
+        pointBackgroundColor: '#6c63ff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 1, max: 3,
+          grid: { color: 'rgba(255,255,255,.06)' },
+          ticks: {
+            color: '#8892a4',
+            callback: v => v.toFixed(1),
+          }
+        },
+        x: {
+          grid: { color: 'rgba(255,255,255,.06)' },
+          ticks: { color: '#8892a4' }
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(26,26,46,.95)',
+          titleColor: '#e2e8f0',
+          bodyColor: '#8892a4',
+          borderColor: 'rgba(108,99,255,.3)',
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => ' Score: ' + ctx.parsed.y.toFixed(2)
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

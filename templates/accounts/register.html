@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Register — CommQuality Analyzer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height:80vh;">
+  <div class="col-12 col-md-6 col-lg-5">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="mb-3"><span style="font-size:3rem;">🧩</span></div>
+      <h1 class="section-title fs-2">Create Account</h1>
+      <p class="text-muted">Join CommQuality to start analyzing family communication</p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="glass-card p-4 p-md-5">
+      <form id="registerForm" method="post" action="{% url 'register' %}" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="username" class="form-label fw-semibold">
+            <i class="bi bi-person me-1" style="color:var(--primary)"></i>Username
+          </label>
+          <input type="text" id="username" name="username"
+            class="form-control form-control-custom"
+            placeholder="Choose a username" required autocomplete="username" />
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold">
+            <i class="bi bi-envelope me-1" style="color:var(--primary)"></i>Email Address
+          </label>
+          <input type="email" id="email" name="email"
+            class="form-control form-control-custom"
+            placeholder="your@email.com" required autocomplete="email" />
+        </div>
+
+        <div class="mb-3">
+          <label for="role" class="form-label fw-semibold">
+            <i class="bi bi-people me-1" style="color:var(--primary)"></i>Role
+          </label>
+          <select id="role" name="role" class="form-select form-select-custom" required>
+            <option value="" disabled selected>Select your role…</option>
+            <option value="parent">👨‍👩‍👧 Parent</option>
+            <option value="child">👦 Child</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label fw-semibold">
+            <i class="bi bi-lock me-1" style="color:var(--primary)"></i>Password
+          </label>
+          <div class="input-group">
+            <input type="password" id="password" name="password"
+              class="form-control form-control-custom"
+              placeholder="Minimum 8 characters"
+              required autocomplete="new-password"
+              style="border-right:none;" />
+            <button class="btn" type="button" id="togglePwd"
+              style="background:rgba(255,255,255,.05);border:1px solid rgba(108,99,255,.3);border-left:none;border-radius:0 .75rem .75rem 0;color:#8892a4;">
+              <i class="bi bi-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+          <!-- Password strength bar -->
+          <div class="mt-2">
+            <div class="progress" style="height:4px;background:rgba(255,255,255,.1);border-radius:4px;">
+              <div id="strengthBar" class="progress-bar" style="width:0%;transition:width .3s;border-radius:4px;"></div>
+            </div>
+            <small id="strengthLabel" class="text-muted mt-1 d-block"></small>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="confirm_password" class="form-label fw-semibold">
+            <i class="bi bi-lock-fill me-1" style="color:var(--primary)"></i>Confirm Password
+          </label>
+          <input type="password" id="confirm_password" name="confirm_password"
+            class="form-control form-control-custom"
+            placeholder="Re-enter password"
+            required autocomplete="new-password" />
+          <small id="matchMsg" class="mt-1 d-block"></small>
+        </div>
+
+        <button type="submit" class="btn btn-primary-custom w-100 py-2" id="registerBtn">
+          <i class="bi bi-person-plus me-2"></i>Create Account
+        </button>
+      </form>
+
+      <hr class="my-4" style="border-color:rgba(108,99,255,.2);">
+      <p class="text-center mb-0" style="color:#8892a4;">
+        Already have an account?
+        <a href="{% url 'login' %}" style="color:var(--primary);font-weight:600;">Sign in</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Toggle password
+  document.getElementById('togglePwd').addEventListener('click', function () {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('toggleIcon');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    icon.className = pwd.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  // Password strength meter
+  document.getElementById('password').addEventListener('input', function () {
+    const v = this.value;
+    const bar = document.getElementById('strengthBar');
+    const label = document.getElementById('strengthLabel');
+    let score = 0;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+
+    const levels = [
+      { pct: 0, cls: '', txt: '' },
+      { pct: 25, cls: 'bg-danger', txt: '🔴 Weak' },
+      { pct: 50, cls: 'bg-warning', txt: '🟡 Fair' },
+      { pct: 75, cls: 'bg-info',    txt: '🔵 Good' },
+      { pct: 100, cls: 'bg-success', txt: '🟢 Strong' },
+    ];
+    const l = levels[score] || levels[0];
+    bar.style.width = l.pct + '%';
+    bar.className = 'progress-bar ' + l.cls;
+    label.textContent = l.txt;
+  });
+
+  // Confirm password match
+  document.getElementById('confirm_password').addEventListener('input', function () {
+    const msg = document.getElementById('matchMsg');
+    if (this.value === document.getElementById('password').value) {
+      msg.innerHTML = '<span style="color:var(--success)"><i class="bi bi-check-circle me-1"></i>Passwords match</span>';
+    } else {
+      msg.innerHTML = '<span style="color:var(--danger)"><i class="bi bi-x-circle me-1"></i>Passwords do not match</span>';
+    }
+  });
+
+  // Loading state
+  document.getElementById('registerForm').addEventListener('submit', function () {
+    const btn = document.getElementById('registerBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account…';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

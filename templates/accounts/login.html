@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Login — CommQuality Analyzer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height:80vh;">
+  <div class="col-12 col-md-5 col-lg-4">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="mb-3">
+        <span style="font-size:3rem;">💬</span>
+      </div>
+      <h1 class="section-title fs-2">Welcome Back</h1>
+      <p class="text-muted">Sign in to analyze your communication quality</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="glass-card p-4 p-md-5">
+      <form id="loginForm" method="post" action="{% url 'login' %}" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="username" class="form-label fw-semibold">
+            <i class="bi bi-person me-1" style="color:var(--primary)"></i>Username
+          </label>
+          <input
+            type="text" id="username" name="username"
+            class="form-control form-control-custom"
+            placeholder="Enter your username"
+            required autocomplete="username"
+          />
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold">
+            <i class="bi bi-lock me-1" style="color:var(--primary)"></i>Password
+          </label>
+          <div class="input-group">
+            <input
+              type="password" id="password" name="password"
+              class="form-control form-control-custom"
+              placeholder="Enter your password"
+              required autocomplete="current-password"
+              style="border-right:none;"
+            />
+            <button
+              class="btn"
+              type="button" id="togglePwd"
+              style="background:rgba(255,255,255,.05);border:1px solid rgba(108,99,255,.3);border-left:none;border-radius:0 .75rem .75rem 0;color:#8892a4;"
+            >
+              <i class="bi bi-eye" id="toggleIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary-custom w-100 py-2" id="loginBtn">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+
+      <hr class="my-4" style="border-color:rgba(108,99,255,.2);">
+
+      <p class="text-center mb-0" style="color:#8892a4;">
+        Don't have an account?
+        <a href="{% url 'register' %}" style="color:var(--primary);font-weight:600;">
+          Create one now
+        </a>
+      </p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Toggle password visibility
+  document.getElementById('togglePwd').addEventListener('click', function () {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('toggleIcon');
+    if (pwd.type === 'password') {
+      pwd.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      pwd.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  });
+
+  // Loading state on submit
+  document.getElementById('loginForm').addEventListener('submit', function () {
+    const btn = document.getElementById('loginBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in…';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}
